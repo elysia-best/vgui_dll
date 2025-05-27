@@ -31,6 +31,7 @@ if(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
             "${CMAKE_SOURCE_DIR}/lib-src/linux/*.cpp"
     )
     list(APPEND VGUI_SOURCES ${VGUI_SOURCES_LINUX})
+    list(APPEND CMAKE_CXX_FLAGS "-DNDEBUG -D_LINUX -DLINUX -Dstricmp=strcasecmp -D_vsnprintf=vsnprintf")
 elseif(CMAKE_HOST_SYSTEM_NAME MATCHES "Windows")
     message("current platform: Windows ")
     include_directories(
