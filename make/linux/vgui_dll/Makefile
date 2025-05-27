@@ -111,6 +111,9 @@ OBJ = \
 $(BINDIR)/$(DLLNAME).$(SHLIBEXT) : neat $(OBJ)
 	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) $(LDFLAGS) -o $@ $(OBJ)
 
+vgui.so : $(OBJ)
+	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) $(LDFLAGS) -o $@ $(OBJ)
+
 neat:
 	-mkdir -p $(OBJDIR)
 	-mkdir -p $(OBJDIR)/vgui

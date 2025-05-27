@@ -40,6 +40,13 @@
 #include"vgui_win32.h"
 #include<zmouse.h>
 
+#ifndef GWL_USERDATA
+# define GWL_USERDATA GWLP_USERDATA
+#endif
+#ifndef intptr_t
+# define intptr_t size_t
+#endif
+
 using namespace vgui;
 
 class Texture
@@ -84,7 +91,7 @@ static WNDCLASS staticWndclass = { NULL };
 static ATOM staticWndclassAtom = 0;
 
 // these functions defined below
-LRESULT CALLBACK staticProc(HWND hwnd,UINT msg,WPARAM wparam,LPARAM lparam);
+static LRESULT CALLBACK staticProc(HWND hwnd,UINT msg,WPARAM wparam,LPARAM lparam);
 
 bool Surface::createPlat()
 {
@@ -230,7 +237,7 @@ bool Surface::createPlat()
 	plat->isFullscreen = false;
 
 	::SetBkMode(plat->hdc, TRANSPARENT);
-	::SetWindowLong(plat->hwnd, GWL_USERDATA, (LONG)this);
+	::SetWindowLong(plat->hwnd, GWL_USERDATA, (intptr_t)this);
 	::SetTextAlign(plat->hdc, TA_LEFT | TA_TOP | TA_UPDATECP);
 
 	return true;

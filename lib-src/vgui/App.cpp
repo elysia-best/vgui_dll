@@ -27,6 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <cstddef>
 #include<stdio.h>
 #include<VGUI_App.h>
 #include<VGUI_SurfaceBase.h>
@@ -676,7 +677,7 @@ void App::setMouseArena(Panel* panel)
 
 void App::setMouseArena(int x0,int y0,int x1,int y1,bool enabled)
 {
-	setMouseArena(false);
+	setMouseArena(NULL);
 	internalSetMouseArena(x0,y0,x1,y1,enabled);
 }
 

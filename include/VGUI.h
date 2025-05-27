@@ -84,6 +84,8 @@
 #include <sys/types.h> // size_t define
 #endif
 
+#include<stdlib.h> // for malloc
+
 #define null 0L
 
 typedef unsigned char  uchar;
