@@ -1,0 +1,136 @@
+name: Build
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  Debian:
+    name: Debian
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Setup Cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.cache
+          key:  ${{ runner.os }}-debian-${{ github.sha }}
+          restore-keys:  ${{ runner.os }}-debian-
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: "Build vgui"
+        run: |
+          DOCKER_IMAGE="ghcr.io/loong64/debian:trixie"
+          DOCKER_CMD=`cat << EOF
+            set -e
+            apt update
+            apt install -y build-essential cmake ninja-build sudo git ccache
+          
+            export USE_CCACHE=1
+            export CCACHE_SLOPPINESS=file_macro,include_file_mtime,time_macros
+            export CCACHE_UMASK=002
+            export CCACHE_DIR=/root/.cache
+            ccache -M 50G
+            export CC="ccache gcc"
+            export CPP="ccache cpp"
+            export CXX="ccache g++"
+
+            git config --global --add safe.directory /io/3rdparty/ReGameDLL_CS
+            mkdir build
+            cmake -S . -B build -GNinja -DCMAKE_BUILD_TYPE=Release
+            cd build
+            cmake --build . --parallel $(nproc)
+            cpack --config CPackConfig.cmake
+          EOF
+          `
+          docker run --rm \
+            --cpus=`nproc` \
+            --platform linux/loong64 \
+            --volume /tmp/.cache:/root/.cache \
+            --volume "$(pwd):/io" \
+            --workdir /io \
+            "$DOCKER_IMAGE" \
+            bash -c "$DOCKER_CMD"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Debian-loong64
+          path: build/*.tar.gz
+  AOSC:
+    name: AOSC
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Setup Cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.cache
+          key:  ${{ runner.os }}-asoc-${{ github.sha }}
+          restore-keys:  ${{ runner.os }}-asoc-
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: "Build cs16"
+        run: |
+          DOCKER_IMAGE="ghcr.io/multiarchstore/aosc:latest-loong64"
+          DOCKER_CMD=`cat << EOF
+            set -e
+            apt update
+            apt install -y devel-base cmake ninja fontconfig sudo git ccache
+          
+            export USE_CCACHE=1
+            export CCACHE_SLOPPINESS=file_macro,include_file_mtime,time_macros
+            export CCACHE_UMASK=002
+            export CCACHE_DIR=/root/.cache
+            ccache -M 50G
+            export CC="ccache gcc"
+            export CPP="ccache cpp"
+            export CXX="ccache g++"
+
+            git config --global --add safe.directory /io/3rdparty/ReGameDLL_CS
+            mkdir build
+            cmake -S . -B build -GNinja -DCMAKE_BUILD_TYPE=Release
+            cd build
+            cmake --build . --parallel $(nproc)
+            cpack --config CPackConfig.cmake
+          EOF
+          `
+          docker run --rm \
+            --cpus=`nproc` \
+            --platform linux/loong64 \
+            --volume /tmp/.cache:/root/.cache \
+            --volume "$(pwd):/io" \
+            --workdir /io \
+            "$DOCKER_IMAGE" \
+            bash -c "$DOCKER_CMD"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: AOSC-loong64
+          path: build/*.tar.gz
